@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Locations Finder - OpenStreetMap Demo</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .location-info {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            color: #1e3a8a;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        #map {
+            height: 500px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .locations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .location-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .location-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .location-card.hospital {
+            border-left: 4px solid #ef4444;
+        }
+
+        .location-card.pharmacy {
+            border-left: 4px solid #10b981;
+        }
+
+        .location-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1f2937;
+        }
+
+        .location-address {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .location-distance {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏥 Medical Locations Finder</h1>
+            <p>Find nearby hospitals and pharmacies using OpenStreetMap</p>
+            <div class="badges">
+                <span class="badge">✅ No API Keys</span>
+                <span class="badge">✅ Completely Free</span>
+                <span class="badge">✅ Real-time Data</span>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="card">
+            <button class="button" id="findBtn" onclick="findMedicalLocations()">
+                📍 Find Medical Locations Near Me
+            </button>
+            
+            <div id="locationInfo" class="location-info" style="display: none;">
+                <strong>📍 Your Location:</strong>
+                <p id="locationText"></p>
+            </div>
+
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat">
+                    <div class="stat-value" id="hospitalCount">0</div>
+                    <div class="stat-label">🏥 Hospitals</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="pharmacyCount">0</div>
+                    <div class="stat-label">💊 Pharmacies</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: white;">Getting your location and fetching medical facilities...</p>
+        </div>
+
+        <!-- Results -->
+        <div id="results" style="display: none;">
+            <div class="card">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('map')">🗺️ Map View</button>
+                    <button class="tab" onclick="switchTab('hospitals')">🏥 Hospitals</button>
+                    <button class="tab" onclick="switchTab('pharmacies')">💊 Pharmacies</button>
+                </div>
+
+                <!-- Map Tab -->
+                <div class="tab-content active" id="tab-map">
+                    <div id="map"></div>
+                </div>
+
+                <!-- Hospitals Tab -->
+                <div class="tab-content" id="tab-hospitals">
+                    <div class="locations-grid" id="hospitalsGrid"></div>
+                </div>
+
+                <!-- Pharmacies Tab -->
+                <div class="tab-content" id="tab-pharmacies">
+                    <div class="locations-grid" id="pharmaciesGrid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="card" style="text-align: center; margin-top: 20px;">
+            <h3 style="margin-bottom: 10px;">🗺️ Powered by Open Source</h3>
+            <p style="color: #6b7280; font-size: 0.9rem;">
+                OpenStreetMap • Leaflet • Overpass API
+            </p>
+            <p style="color: #9ca3af; font-size: 0.8rem; margin-top: 10px;">
+                © OpenStreetMap contributors
+            </p>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+
+    <script>
+        let map;
+        let hospitals = [];
+        let pharmacies = [];
+        let userLocation = null;
+
+        // Initialize map
+        function initMap(lat, lng) {
+            if (map) {
+                map.remove();
+            }
+
+            map = L.map('map').setView([lat, lng], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Add user location marker
+            L.circleMarker([lat, lng], {
+                radius: 10,
+                fillColor: '#3b82f6',
+                color: '#ffffff',
+                weight: 2,
+                fillOpacity: 1
+            }).addTo(map).bindPopup('📍 Your Location');
+        }
+
+        // Add markers to map
+        function addMarkers(locations, type) {
+            const color = type === 'hospital' ? '#ef4444' : '#10b981';
+            const icon = type === 'hospital' ? '🏥' : '💊';
+
+            locations.forEach(location => {
+                L.circleMarker([location.lat, location.lng], {
+                    radius: 8,
+                    fillColor: color,
+                    color: '#ffffff',
+                    weight: 2,
+                    fillOpacity: 0.9
+                }).addTo(map).bindPopup(`
+                    <strong>${icon} ${location.name}</strong><br>
+                    📍 ${location.address || 'Address not available'}<br>
+                    📏 ${location.distance.toFixed(2)} km away
+                `);
+            });
+        }
+
+        // Fetch from Overpass API
+        async function fetchFromOverpass(lat, lng, type) {
+            const radius = 10000; // 10km in meters
+            const amenity = type === 'hospital' ? 'hospital' : 'pharmacy';
+            
+            const query = `
+                [out:json][timeout:35];
+                (
+                    node["amenity"="${amenity}"](around:${radius},${lat},${lng});
+                    way["amenity"="${amenity}"](around:${radius},${lat},${lng});
+                );
+                out body center tags qt;
+            `;
+
+            const response = await fetch('https://overpass-api.de/api/interpreter', {
+                method: 'POST',
+                body: query
+            });
+
+            const data = await response.json();
+            
+            return data.elements.map(element => {
+                const coords = element.center || { lat: element.lat, lon: element.lon };
+                const distance = calculateDistance(lat, lng, coords.lat, coords.lon);
+                
+                return {
+                    id: element.id,
+                    name: element.tags?.name || `Unnamed ${type}`,
+                    lat: coords.lat,
+                    lng: coords.lon,
+                    address: formatAddress(element.tags || {}),
+                    distance: distance,
+                    type: type
+                };
+            }).sort((a, b) => a.distance - b.distance);
+        }
+
+        // Calculate distance between two points (Haversine formula)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        // Format address
+        function formatAddress(tags) {
+            const parts = [];
+            if (tags['addr:street']) parts.push(tags['addr:street']);
+            if (tags['addr:city']) parts.push(tags['addr:city']);
+            if (tags['addr:state']) parts.push(tags['addr:state']);
+            return parts.join(', ') || 'Address not available';
+        }
+
+        // Render location cards
+        function renderLocationCards(locations, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            locations.forEach(location => {
+                const card = document.createElement('div');
+                card.className = `location-card ${location.type}`;
+                card.innerHTML = `
+                    <div class="location-name">${location.name}</div>
+                    <div class="location-address">${location.address}</div>
+                    <div class="location-distance">📏 ${location.distance.toFixed(2)} km away</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Switch tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // Main function
+        async function findMedicalLocations() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser');
+                return;
+            }
+
+            const btn = document.getElementById('findBtn');
+            const loading = document.getElementById('loading');
+            
+            btn.disabled = true;
+            loading.classList.add('active');
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const accuracy = Math.round(position.coords.accuracy);
+
+                    userLocation = { lat, lng };
+
+                    // Update UI
+                    document.getElementById('locationText').innerText = 
+                        `${lat.toFixed(6)}°N, ${lng.toFixed(6)}°E (±${accuracy}m)`;
+                    document.getElementById('locationInfo').style.display = 'block';
+
+                    // Initialize map
+                    initMap(lat, lng);
+
+                    try {
+                        // Fetch hospitals and pharmacies
+                        hospitals = await fetchFromOverpass(lat, lng, 'hospital');
+                        pharmacies = await fetchFromOverpass(lat, lng, 'pharmacy');
+
+                        // Update stats
+                        document.getElementById('hospitalCount').innerText = hospitals.length;
+                        document.getElementById('pharmacyCount').innerText = pharmacies.length;
+                        document.getElementById('stats').style.display = 'flex';
+
+                        // Add markers
+                        addMarkers(hospitals, 'hospital');
+                        addMarkers(pharmacies, 'pharmacy');
+
+                        // Render lists
+                        renderLocationCards(hospitals, 'hospitalsGrid');
+                        renderLocationCards(pharmacies, 'pharmaciesGrid');
+
+                        // Show results
+                        document.getElementById('results').style.display = 'block';
+
+                        // Fit map bounds
+                        const allLocations = [...hospitals, ...pharmacies];
+                        if (allLocations.length > 0) {
+                            const bounds = L.latLngBounds(
+                                allLocations.map(loc => [loc.lat, loc.lng])
+                            );
+                            bounds.extend([lat, lng]);
+                            map.fitBounds(bounds, { padding: [50, 50] });
+                        }
+                    } catch (error) {
+                        console.error('Error fetching locations:', error);
+                        alert('Error fetching medical locations. Please try again.');
+                    }
+
+                    loading.classList.remove('active');
+                    btn.disabled = false;
+                },
+                (error) => {
+                    loading.classList.remove('active');
+                    btn.disabled = false;
+                    
+                    let message = 'Could not get your location';
+                    if (error.code === 1) message = 'Please allow location access';
+                    if (error.code === 2) message = 'Location unavailable';
+                    if (error.code === 3) message = 'Location request timed out';
+                    
+                    alert(message);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 30000,
+                    maximumAge: 0
+                }
+            );
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,394 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Leaflet Map Styles */
+.leaflet-container {
+  font-family: inherit;
+}
+
+/* Button pulse animation */
+@keyframes pulse-button {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* Custom user location marker pulse animation */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2);
+  }
+}
+
+/* Marker hover effects */
+.custom-location-marker {
+  transition: transform 0.2s ease;
+}
+
+.custom-location-marker:hover {
+  z-index: 1000 !important;
+}
+
+/* Leaflet popup customization */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Leaflet routing machine customization */
+.leaflet-routing-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.leaflet-routing-alt {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.leaflet-routing-alt:last-child {
+  border-bottom: none;
+}
+
+.leaflet-routing-alt h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* Geocoder search box styling */
+.leaflet-control-geocoder {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-control-geocoder-form input {
+  border-radius: 6px;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+}
+
+.leaflet-control-geocoder-form input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Marker cluster styling */
+.marker-cluster-small {
+  background-color: rgba(59, 130, 246, 0.6);
+}
+
+.marker-cluster-small div {
+  background-color: rgba(59, 130, 246, 0.8);
+  color: white;
+  font-weight: 600;
+}
+
+.marker-cluster-medium {
+  background-color: rgba(239, 68, 68, 0.6);
+}
+
+.marker-cluster-medium div {
+  background-color: rgba(239, 68, 68, 0.8);
+  color: white;
+  font-weight: 600;
+}
+
+.marker-cluster-large {
+  background-color: rgba(234, 88, 12, 0.6);
+}
+
+.marker-cluster-large div {
+  background-color: rgba(234, 88, 12, 0.8);
+  color: white;
+  font-weight: 600;
+}
+
+/* Locate control button styling */
+.leaflet-control-locate {
+  border-radius: 4px;
+}
+
+.leaflet-control-locate a {
+  background-color: white;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.leaflet-control-locate a:hover {
+  background-color: #f9fafb;
+}
+
+/* Fullscreen control styling */
+.leaflet-control-fullscreen {
+  border-radius: 4px;
+}
+
+.leaflet-control-fullscreen a {
+  background-color: white;
+  border-radius: 4px;
+}
+
+.leaflet-control-fullscreen a:hover {
+  background-color: #f9fafb;
+}
+
+/* Zoom control styling */
+.leaflet-control-zoom {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-control-zoom a {
+  border-radius: 0;
+}
+
+.leaflet-control-zoom a:first-child {
+  border-radius: 8px 8px 0 0;
+}
+
+.leaflet-control-zoom a:last-child {
+  border-radius: 0 0 8px 8px;
+}
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 173 58% 39%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 199 89% 48%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 199 89% 48%;
+
+    /* Custom gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(199, 89%, 48%) 0%, hsl(173, 58%, 39%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(199, 89%, 48%) 0%, hsl(210, 100%, 60%) 50%, hsl(173, 58%, 39%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(210, 40%, 98%) 100%);
+    --gradient-emergency: linear-gradient(135deg, hsl(0, 84%, 60%) 0%, hsl(15, 90%, 55%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 40px -10px hsl(199, 89%, 48%, 0.4);
+  }
+
+  .dark {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 173 58% 39%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 199 89% 48%;
+
+    --sidebar-background: 222 47% 7%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 199 89% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50 shadow-lg;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+
+  .gradient-bg {
+    background-image: var(--gradient-primary);
+  }
+
+  .gradient-hero {
+    background-image: var(--gradient-hero);
+  }
+
+  .gradient-emergency {
+    background-image: var(--gradient-emergency);
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-button 6s ease-in-out infinite;
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 8s ease infinite;
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl;
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/30;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slide-in-right 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out forwards;
+}

@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "start:backend": "cd server && npm start",
+    "start:frontend": "npm run dev",
+    "dev:backend": "cd server && npm run dev",
+    "seed": "cd server && node seed.js",
+    "test:api": "curl http://localhost:5000/api/health"
+  }
+}
